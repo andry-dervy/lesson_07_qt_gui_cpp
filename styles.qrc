@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>styles/MailSy.qss</file>
+        <file>styles/Integrid.qss</file>
+    </qresource>
+</RCC>
