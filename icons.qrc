@@ -7,5 +7,33 @@
         <file>icons/writable.png</file>
         <file>icons/enable.png</file>
         <file>icons/print.png</file>
+        <file>icons/textformate/center.png</file>
+        <file>icons/textformate/left.png</file>
+        <file>icons/textformate/right.png</file>
+        <file>icons/textformate/width.png</file>
+        <file>icons/textformate/font.png</file>
+        <file>icons/textformate/colorfont.png</file>
+        <file>icons/textformate/colorbackground.png</file>
+        <file>icons/textformate/clear.png</file>
+        <file>icons/textformate/copyformat.png</file>
+        <file>icons/graphics/line.png</file>
+        <file>icons/graphics/rectangle.png</file>
+        <file>documentview.cpp</file>
+        <file>documentview.h</file>
+        <file>drawgraphtoolbarsingleton.cpp</file>
+        <file>drawgraphtoolbarsingleton.h</file>
+        <file>keypresseventfilter.cpp</file>
+        <file>keypresseventfilter.h</file>
+        <file>languagevisitor.cpp</file>
+        <file>languagevisitor.h</file>
+        <file>main.cpp</file>
+        <file>mainwindow.cpp</file>
+        <file>mainwindow.h</file>
+        <file>textformatetoolbarsingleton.cpp</file>
+        <file>textformatetoolbarsingleton.h</file>
+        <file>widgetsettings.cpp</file>
+        <file>widgetsettings.h</file>
+        <file>widgettreedirs.cpp</file>
+        <file>widgettreedirs.h</file>
     </qresource>
 </RCC>

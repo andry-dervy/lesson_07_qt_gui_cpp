@@ -13,20 +13,26 @@ CODECFORSRC = UTF-8
 
 SOURCES += \
     documentview.cpp \
+    drawgraphtoolbarsingleton.cpp \
     keypresseventfilter.cpp \
     languagevisitor.cpp \
     main.cpp \
     mainwindow.cpp \
+    textformatetoolbarsingleton.cpp \
     widgetsettings.cpp \
-    widgettreedirs.cpp
+    widgettreedirs.cpp \
+    toolbarelementsfactory.cpp
 
 HEADERS += \
     documentview.h \
+    drawgraphtoolbarsingleton.h \
     keypresseventfilter.h \
     languagevisitor.h \
     mainwindow.h \
+    textformatetoolbarsingleton.h \
     widgetsettings.h \
-    widgettreedirs.h
+    widgettreedirs.h \
+    toolbarelementsfactory.h
 
 FORMS += \
     mainwindow.ui

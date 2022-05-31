@@ -6,6 +6,7 @@
 #include <QLabel>
 #include <QVBoxLayout>
 #include <QMdiArea>
+#include "QToolBar"
 
 #include <memory>
 #include <keypresseventfilter.h>
@@ -39,6 +40,7 @@ private:
     WidgetSettings* wdgtSettings;
     QDockWidget* dockTreeDirs;
     WidgetTreeDirs* wdgtTreeDirs;
+    QToolBar* tbTextFormate;
 
     ReadableWritable rw;
 
@@ -47,11 +49,31 @@ private:
     QAction* changeReadableWritable;
 
 private:
-    void acceptLanguage(std::shared_ptr<LanguageVisitor>& lv);
+    void acceptLanguage(std::shared_ptr<LanguageVisitor>&& lv);
+
+    void setMenuFile();
+    void setMenuView();
+    void setMenuSettings();
+    void setMenuLanguage();
+    void setMenuHelp();
     void setMenu();
     void setToolBar();
 
+    void retranslateMenuFile();
+    void retranslateMenuView();
+    void retranslateMenuSettings();
+    void retranslateMenuLanguage();
+    void retranslateMenuHelp();
+
     void setReadableWritable(ReadableWritable aRW);
+    void setTheme(QString&& nfileQss);
+    void switchCheckedActionLanguage(std::shared_ptr<LanguageVisitor>& lv);
+    void setVisibleTextFormatToolBar(bool visible);
+    void setVisibleDrawGraphToolBar(bool visible);
+    void addSubWindow(DocumentView* docView);
+
+signals:
+    void activatedDocumentView(DocumentView* docView);
 
 private slots:
     void setRussianLanguage();
@@ -61,7 +83,11 @@ private slots:
     void setThemeIntegrid();
 
     void viewTreeDirs();
-    void newFile();
+    void viewToolBarTextFormat();
+    void viewToolBarDrawing();
+
+    void newTextFile();
+    void newGraphFile();
     void openFilePath(QString& path, ReadableWritable aRW);
     void openFile();
     void openFileReadableOnly();
@@ -78,9 +104,8 @@ private slots:
     void quit();
     void assignKeyboardShortcuts();
     void subWindowActivated(QMdiSubWindow* subWnd);
+    void closeSubWnd(TypeDocumentView type);
     void closeDockTreeDirs();
 };
-
-
 
 #endif // MAINWINDOW_H

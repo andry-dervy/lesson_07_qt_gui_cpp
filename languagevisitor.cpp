@@ -4,6 +4,7 @@ void LanguageVisitor::fun(){}
 
 LanguageRussianVisitor::LanguageRussianVisitor()
 {
+    lang = LANGUAGE::Russian;
     translator.load(":/language/QtLanguage_ru.qm");
     qApp->installTranslator(&translator);
 }
@@ -12,6 +13,7 @@ void LanguageRussianVisitor::fun(){}
 
 LanguageEnglishVisitor::LanguageEnglishVisitor()
 {
+    lang = LANGUAGE::English;
     translator.load(":/language/QtLanguage_en.qm");
     qApp->installTranslator(&translator);
 }
