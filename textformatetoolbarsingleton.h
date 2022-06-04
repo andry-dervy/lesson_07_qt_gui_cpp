@@ -9,6 +9,7 @@
 #include "QTextDocument"
 #include "QTextDocumentFragment"
 #include "mainwindow.h"
+#include "textdocumentview.h"
 
 class TextFormateToolBarSingleton: public QToolBar
 {
@@ -21,9 +22,11 @@ public:
     void setActionsChecked(Qt::Alignment alignment);
     bool setToolBarTextFormatAlignment(Qt::Alignment alignment);
     std::optional<std::pair<TextDocumentView*,QTextCursor>> getCursorCurrentSubWindow() const;
+    void addTextDocumentView(DocumentView *docView);
 private:
     bool added;
     Qt::Alignment alignment_;
+    QSet<TextDocumentView*> docViews;
 
 private:
     TextFormateToolBarSingleton(MainWindow* parent);
@@ -44,7 +47,8 @@ public slots:
     void textClearFormat();
     void textCopyFormat();
     void activatedDocumentView(DocumentView* docView);
-
+    void currentAlignment(Qt::Alignment alignment);
+    void eraseTextDocumentView(TextDocumentView *txtDocView);
 };
 
 #endif // TEXTFORMATETOOLBARSINGLETON_H

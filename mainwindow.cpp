@@ -236,6 +236,7 @@ void MainWindow::addSubWindow(DocumentView* docView)
     auto subwnd = mdi->addSubWindow(docView);
     subwnd->installEventFilter(docView);
     connect(docView,&DocumentView::closeSubWnd,this,&MainWindow::closeSubWnd);
+    TextFormateToolBarSingleton::getInstance(this)->addTextDocumentView(docView);
     docView->show();
 }
 

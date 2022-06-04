@@ -1,5 +1,6 @@
 #include "textformatetoolbarsingleton.h"
 #include "toolbarelementsfactory.h"
+#include "QDebug"
 
 extern template void ToolbarElementsFactory<QAction>::setText(QObject* obj,const QString&& nameObject,const QString&& text);
 extern template std::optional<QAction *> ToolbarElementsFactory<QAction>::create(const QString &&nameObject, QWidget *parent, bool checkable, const QPixmap &&icon);
@@ -25,8 +26,8 @@ void TextFormateToolBarSingleton::retranslate()
 }
 
 TextFormateToolBarSingleton::TextFormateToolBarSingleton(MainWindow* parent)
-    : QToolBar(parent),
-    added(false)
+    : QToolBar(parent)
+    , added(false)
 {
     auto act = ToolbarElementsFactory<QAction>::create(
                 "actTextFormateLeft", this,true,QPixmap(":/icons/textformate/left.png"));
@@ -96,6 +97,8 @@ void TextFormateToolBarSingleton::setActionsChecked(Qt::Alignment alignment)
     auto actTextFormateWidth = findChild<QAction*>("actTextFormateWidth");
     if(actTextFormateWidth) actTextFormateWidth->setChecked(false);
 
+    qDebug() << "setActionsChecked(" << alignment <<")";
+
     switch (alignment) {
     case Qt::AlignLeft:
         if(actTextFormateLeft) actTextFormateLeft->setChecked(true);
@@ -106,6 +109,7 @@ void TextFormateToolBarSingleton::setActionsChecked(Qt::Alignment alignment)
         if(actTextFormateCenter) actTextFormateCenter->setChecked(true);
         break;
     case Qt::AlignRight:
+    case Qt::AlignTrailing|Qt::AlignAbsolute:
         if(actTextFormateRight) actTextFormateRight->setChecked(true);
         break;
     case Qt::AlignJustify:
@@ -247,6 +251,11 @@ void TextFormateToolBarSingleton::activatedDocumentView(DocumentView* docView)
     setActionsChecked(textDocView->te().alignment());
 }
 
+void TextFormateToolBarSingleton::currentAlignment(Qt::Alignment alignment)
+{
+    setActionsChecked(alignment);
+}
+
 std::optional<std::pair<TextDocumentView*,QTextCursor>> TextFormateToolBarSingleton::getCursorCurrentSubWindow() const
 {
     auto wnd = qobject_cast<MainWindow*>(parent());
@@ -260,3 +269,19 @@ std::optional<std::pair<TextDocumentView*,QTextCursor>> TextFormateToolBarSingle
     return std::make_optional<std::pair<TextDocumentView*,QTextCursor>>(textDocView, textDocView->te().textCursor());
 }
 
+void TextFormateToolBarSingleton::addTextDocumentView(DocumentView *docView)
+{
+    if(!docView) return;
+    auto txtDocView = qobject_cast<TextDocumentView*>(docView);
+    if(!txtDocView) return;
+    if(docViews.find(txtDocView) != docViews.end()) return;
+    docViews.insert(txtDocView);
+    connect(txtDocView,&TextDocumentView::currentAlignment,this,&TextFormateToolBarSingleton::currentAlignment);
+    connect(txtDocView,&TextDocumentView::close,this,&TextFormateToolBarSingleton::eraseTextDocumentView);
+}
+
+void TextFormateToolBarSingleton::eraseTextDocumentView(TextDocumentView *txtDocView)
+{
+    if(docViews.find(txtDocView) == docViews.end()) return;
+    docViews.erase(docViews.find(txtDocView));
+}

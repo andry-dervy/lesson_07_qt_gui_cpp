@@ -8,6 +8,7 @@
 #include <QAction>
 
 #include "mainwindow.h"
+#include "graphdocumentview.h"
 
 class DrawGraphToolBarSingleton : public QToolBar
 {
