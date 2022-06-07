@@ -2,6 +2,7 @@
 #include "toolbarelementsfactory.h"
 
 extern template std::optional<QAction *> ToolbarElementsFactory<QAction>::create(const QString &&nameObject, QWidget *parent, bool checkable, const QPixmap &&icon);
+extern template std::optional<QComboBox *> ToolbarElementsFactory<QComboBox>::create(const QString &&nameObject, QWidget *parent, bool checkable, const QPixmap &&icon);
 
 DrawGraphToolBarSingleton* DrawGraphToolBarSingleton::getInstance(MainWindow* parent)
 {
@@ -14,6 +15,7 @@ void DrawGraphToolBarSingleton::retranslate()
 {
     ToolbarElementsFactory<QAction>::setText(this,"actDrawLine",tr("Линия"));
     ToolbarElementsFactory<QAction>::setText(this,"actDrawRectangle",tr("Прямоугольник"));
+    ToolbarElementsFactory<QComboBox>::setText(this,"cbWidthPen",tr("Толщина пера"));
 }
 
 DrawGraphToolBarSingleton::DrawGraphToolBarSingleton(MainWindow *parent)
@@ -30,6 +32,18 @@ DrawGraphToolBarSingleton::DrawGraphToolBarSingleton(MainWindow *parent)
     Q_ASSERT(act != nullptr);
     connect(*act,SIGNAL(triggered()),this,SLOT(setDrawingRectangle()));
     addAction(*act);
+
+    auto combo = ToolbarElementsFactory<QComboBox>::create(
+                    "cbWidthPen",this,false,QPixmap());
+    Q_ASSERT(combo != nullptr);
+
+    QStringList listItems;
+    listItems << "1" << "2" << "3" << "4" << "5" << "6" << "7" << "8" << "9" << "10";
+    (*combo)->addItems(listItems);
+    connect(*combo, QOverload<int>::of(&QComboBox::activated),
+        this,&DrawGraphToolBarSingleton::setWidthPen);
+    addWidget(*combo);
+
 }
 
 void DrawGraphToolBarSingleton::clearActionsChecked(QAction* currentAct)
@@ -70,7 +84,16 @@ void DrawGraphToolBarSingleton::setDrawingRectangle()
     setDrawingElement("actDrawRectangle",GraphDocumentView::TypeGraphElement::Rectangle);
 }
 
-void DrawGraphToolBarSingleton::activatedDocumentView(DocumentView* docView)
+void DrawGraphToolBarSingleton::setWidthPen(int index)
 {
 
+}
+
+void DrawGraphToolBarSingleton::activatedDocumentView(DocumentView* docView)
+{
+    if(!docView) return;
+    auto graphDocView = qobject_cast<GraphDocumentView*>(docView);
+    if(!graphDocView) return;
+
+    //setActionsChecked(textDocView->te().alignment());
 }

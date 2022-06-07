@@ -36,6 +36,8 @@ private:
 public slots:
     void setDrawingLine();
     void setDrawingRectangle();
+    void setWidthPen(int index);
+
     void activatedDocumentView(DocumentView* docView);
 
 signals:

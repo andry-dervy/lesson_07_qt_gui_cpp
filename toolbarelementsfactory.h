@@ -6,6 +6,7 @@
 #include <QMenu>
 #include <QPixmap>
 #include <QToolButton>
+#include <QComboBox>
 
 template<class T>
 class ToolbarElementsFactory

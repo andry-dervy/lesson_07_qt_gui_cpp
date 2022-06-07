@@ -5,25 +5,42 @@
 #include <QGraphicsLineItem>
 #include <QGraphicsSceneMouseEvent>
 
-
-class ControlPoint: public QObject,  public QGraphicsRectItem
+class BaseGraphicsItem: public QGraphicsRectItem
 {
 public:
-    ControlPoint(qreal x, qreal y, qreal w, qreal h, QGraphicsItem *parent = nullptr);
+    BaseGraphicsItem(QGraphicsItem *parent = nullptr)
+        :QGraphicsRectItem(parent){}
+    virtual ~BaseGraphicsItem() {}
+    virtual void resize(int weight, int hight) = 0;
+};
+
+
+class ControlPoint: public QObject,  public BaseGraphicsItem
+{
+    Q_OBJECT
+public:
+    ControlPoint(QGraphicsItem *parent = nullptr);
     ~ControlPoint(){}
+    void resize(int weight, int hight) override {
+        Q_UNUSED(weight);Q_UNUSED(hight);
+    }
 protected:
-    QRectF boundingRect() const;
-    void mouseMoveEvent( QGraphicsSceneMouseEvent* event);
+    QRectF boundingRect() const override;
+    void mouseMoveEvent( QGraphicsSceneMouseEvent* event) override;
 
 private:
 };
 
-class Line: public QObject, public QGraphicsItemGroup
+class Line: public QObject, public BaseGraphicsItem
 {
+    Q_OBJECT
 public:
     Line(qreal x1, qreal y1, qreal x2, qreal y2, QGraphicsItem *parent = nullptr);
     ~Line(){}
     void setPen(QPen pen);
+    void resize(int weight, int hight) override {
+        Q_UNUSED(weight);Q_UNUSED(hight);
+    }
 private:
     qreal x1,y1,x2,y2;
     QGraphicsLineItem* itemLine;
@@ -32,21 +49,36 @@ private:
 
 };
 
-class Rect: public QObject, public QGraphicsItemGroup
+class Rect: public QObject, public BaseGraphicsItem
 {
+    Q_OBJECT
 public:
     Rect(qreal x1, qreal y1, qreal x2, qreal y2, QGraphicsItem *parent = nullptr);
     ~Rect(){}
-    void setPen(QPen pen);
+    void setPen(QPen aPen);
+    void resize(int weight, int hight) override;
 private:
     qreal x1,y1,x2,y2;
+    bool hoverEntered;
+
+    int w;
+    int h;
+
+
     QGraphicsRectItem* rect;
+    QPen pen;
 protected:
-    QRectF boundingRect() const;
+    QRectF boundingRect() const override;
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) override;
     void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
     void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+
+    void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
+    void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
+    void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override;
 };
+
 
 class GraphicsView: public QGraphicsView
 {
@@ -57,7 +89,7 @@ public:
 private:
     bool m_isKeyPressed;
     QPointF lastpos;
-    QGraphicsItem* currentItem;
+    BaseGraphicsItem* currentItem;
 protected:
     void mouseMoveEvent(QMouseEvent* event) override;
     void mousePressEvent(QMouseEvent* event) override;
@@ -91,7 +123,7 @@ private:
     bool isKeyPressed;
 
 public:
-    QGraphicsItemGroup *getNewItem(qreal ax1, qreal ay1, qreal ax2, qreal ay2);
+    QGraphicsItem *getNewItem(qreal ax1, qreal ay1, qreal ax2, qreal ay2);
 
 public:
     void setTypeGraphElement(TypeGraphElement type) {typeGraphElement = type;}

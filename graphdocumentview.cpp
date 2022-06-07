@@ -9,8 +9,8 @@
 #include <QDebug>
 #include <QColor>
 
-ControlPoint::ControlPoint(qreal x, qreal y, qreal w, qreal h, QGraphicsItem *parent)
-    : QGraphicsRectItem(x,y,w,h,parent)
+ControlPoint::ControlPoint(QGraphicsItem *parent)
+    : BaseGraphicsItem(parent)
 {}
 
 QRectF ControlPoint::boundingRect() const
@@ -29,20 +29,20 @@ void ControlPoint::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 }
 
 Line::Line(qreal ax1, qreal ay1, qreal ax2, qreal ay2, QGraphicsItem *parent)
-    : QGraphicsItemGroup (parent)
+    : BaseGraphicsItem (parent)
     , x1(ax1)
     , y1(ay1)
     , x2(ax2)
     , y2(ay2)
 {
-    itemLine = new QGraphicsLineItem(x1,y1,x2,y2,this);
-    addToGroup(itemLine);
-    p_begin = new ControlPoint(x1,y1,4,4,this);
-    p_begin->setFlags(ItemIsMovable|ItemIsSelectable);
-    p_begin->setSelected(true);
-    addToGroup(p_begin);
-    p_end = new ControlPoint(x2,y2,4,4,itemLine);
-    addToGroup(p_end);
+//    itemLine = new QGraphicsLineItem(x1,y1,x2,y2,this);
+//    //addToGroup(itemLine);
+//    p_begin = new ControlPoint(this);
+//    p_begin->setFlags(ItemIsMovable|ItemIsSelectable);
+//    p_begin->setSelected(true);
+//    //addToGroup(p_begin);
+//    p_end = new ControlPoint(itemLine);
+//    //addToGroup(p_end);
 }
 
 void Line::setPen(QPen pen)
@@ -57,43 +57,98 @@ void Line::setPen(QPen pen)
 }
 
 Rect::Rect(qreal ax1, qreal ay1, qreal ax2, qreal ay2, QGraphicsItem *parent)
-    : QGraphicsItemGroup (parent)
+    : BaseGraphicsItem (parent)
     , x1(ax1)
     , y1(ay1)
     , x2(ax2)
     , y2(ay2)
+    , hoverEntered(false)
 {
-    rect = new QGraphicsRectItem(ax1,ay1,ax2 - ax1,ay2 - ay1);
-    rect->setFlags(ItemIsMovable | ItemIsSelectable | ItemIsFocusable);
-    addToGroup(rect);
+    w = static_cast<int>(x2 - x1);
+    h = static_cast<int>(y2 - y1);
+
     setFlags(ItemIsMovable | ItemIsSelectable | ItemIsFocusable);
+    setAcceptDrops(true);
+    setAcceptHoverEvents(true);
+    setAcceptedMouseButtons(Qt::AllButtons);
 }
 
-void Rect::setPen(QPen pen)
+void Rect::setPen(QPen aPen)
 {
-    Q_ASSERT(rect != nullptr);
+    pen = aPen;
+}
 
-    rect->setPen(pen);
+void Rect::resize(int weight, int hight)
+{
+    if(weight >= 0 && hight >= 0)
+    {
+        prepareGeometryChange();
+        w = weight;
+        h = hight;
+        update();
+    }
 }
 
 QRectF Rect::boundingRect() const
 {
-    return QRectF(x1-5, y1-5, x2+5, y2+5);
+    return QRectF(-w/2, -h/2, w/2, h/2);
+}
+
+void Rect::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+{
+    Q_UNUSED(option);
+    Q_UNUSED(widget);
+
+    painter->setPen(pen);
+
+    painter->drawRect(boundingRect());
+
+    if(hoverEntered) painter->fillRect(boundingRect(),Qt::blue);
+    else painter->fillRect(boundingRect(),Qt::red);
 }
 
 void Rect::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
     qDebug() << "Rect::mouseMoveEvent: " << event->pos();
+    //update();
+    QGraphicsItem::mouseMoveEvent(event);
 }
 
 void Rect::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     qDebug() << "Rect::mousePressEvent: " << event->pos();
+    //update();
+    QGraphicsItem::mousePressEvent(event);
 }
 
 void Rect::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
     qDebug() << "Rect::mouseReleaseEvent: " << event->pos();
+    //update();
+    QGraphicsItem::mouseReleaseEvent(event);
+}
+
+void Rect::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
+{
+    qDebug() << "Rect::hoverEnterEvent: " << event->pos();
+    hoverEntered = true;
+    update();
+    QGraphicsItem::hoverEnterEvent(event);
+}
+
+void Rect::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
+{
+    qDebug() << "Rect::hoverLeaveEvent: " << event->pos();
+    hoverEntered = false;
+    update();
+    QGraphicsItem::hoverLeaveEvent(event);
+}
+
+void Rect::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
+{
+    qDebug() << "Rect::hoverMoveEvent: " << event->pos();
+
+    QGraphicsItem::hoverMoveEvent(event);
 }
 
 GraphicsView::GraphicsView(QWidget *parent)
@@ -108,7 +163,7 @@ void GraphicsView::mouseMoveEvent(QMouseEvent *event)
             if(m_isKeyPressed) {
                 if(!currentItem) return;
                 QPointF pos = mapToScene(event->pos());
-                currentItem->moveBy(pos.x() - lastpos.x(),pos.y() - lastpos.y());
+                currentItem->resize(pos.x() - lastpos.x(),pos.y() - lastpos.y());
                 lastpos = pos;
                 qDebug() << "QEvent::MouseMove: " << pos;
             }
@@ -117,6 +172,7 @@ void GraphicsView::mouseMoveEvent(QMouseEvent *event)
         default:
         break;
     }
+    QGraphicsView::mouseMoveEvent(event);
 }
 
 void GraphicsView::mousePressEvent(QMouseEvent *event)
@@ -130,21 +186,37 @@ void GraphicsView::mousePressEvent(QMouseEvent *event)
         {
             QPointF pos = mapToScene(event->pos());
             qDebug() << "QEvent::MouseButtonPress - " << "Qt::LeftButton: " << pos;
+            qDebug() << "event->pos() " << event->pos();
+            QPointF posGl = mapToGlobal(event->pos());
+            qDebug() << "posGl " << posGl;
             switch(docView->getTypeGraphElement())
             {
                 case GraphDocumentView::TypeGraphElement::Empty:
                 {
                     m_isKeyPressed = true;
                     lastpos = mapToScene(event->pos());
-                    auto item = itemAt(event->pos());
+                    auto item = dynamic_cast<BaseGraphicsItem*>(itemAt(event->pos()));
                     if(!item) return;
-                    currentItem = item;
+                    currentItem =  item;
+
+//                    if(item->isSelected()) {
+////                        item->setSelected(false);
+////                        item->clearFocus();
+////                        item->ungrabMouse();
+//                    }
+//                    else {
+////                        item->setSelected(true);
+////                        item->setFocus(Qt::MouseFocusReason);
+////                        item->grabMouse();
+//                    }
+
                     break;
                 }
                 case GraphDocumentView::TypeGraphElement::Line:
                 case GraphDocumentView::TypeGraphElement::Rectangle:
                 {
-                    auto newitem = docView->getNewItem(pos.x()-10, pos.y()-10, pos.x()+10, pos.y()+10);
+                    auto newitem = docView->getNewItem(pos.x()-100, pos.y()-100, pos.x()+100, pos.y()+100);
+                    newitem->setPos(pos);
                     if(newitem) scene()->addItem(newitem);
                     break;
                 }
@@ -154,6 +226,7 @@ void GraphicsView::mousePressEvent(QMouseEvent *event)
         default:
         break;
     }
+    QGraphicsView::mousePressEvent(event);
 }
 
 void GraphicsView::mouseReleaseEvent(QMouseEvent *event)
@@ -164,8 +237,16 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent *event)
     switch (event->button()) {
     case Qt::LeftButton:
     {
-        m_isKeyPressed = false;
-        currentItem = nullptr;
+        if(m_isKeyPressed)
+        {
+            m_isKeyPressed = false;
+//            if(currentItem)
+//            {
+//                //currentItem->setSelected(false);
+
+//                currentItem = nullptr;
+//            }
+        }
 
         QPointF pos = mapToScene(event->pos());
         qDebug() << "QEvent::MouseButtonRelease - " << "Qt::LeftButton: " << pos;
@@ -174,7 +255,7 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent *event)
     default:
     break;
     }
-
+    QGraphicsView::mouseReleaseEvent(event);
 }
 
 GraphDocumentView::GraphDocumentView(QWidget* parent)
@@ -191,7 +272,7 @@ GraphDocumentView::GraphDocumentView(QWidget* parent)
 //    graphView->installEventFilter(graphViewEF);
 
     scene = new QGraphicsScene(this);
-    scene->setSceneRect(QRect(0,0,10,10));
+    scene->setSceneRect(QRect(0,0,100,100));
     graphView->setScene(scene);
     graphView->fitInView(scene->sceneRect(),Qt::KeepAspectRatio);
     //scene->installEventFilter(this);
@@ -228,7 +309,7 @@ void GraphDocumentView::print(QPrinter* printer) const
     Q_UNUSED(printer);
 }
 
-QGraphicsItemGroup* GraphDocumentView::getNewItem(qreal ax1, qreal ay1, qreal ax2, qreal ay2)
+QGraphicsItem* GraphDocumentView::getNewItem(qreal ax1, qreal ay1, qreal ax2, qreal ay2)
 {
     switch(typeGraphElement)
     {
