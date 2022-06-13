@@ -5,47 +5,51 @@
 #include <QGraphicsLineItem>
 #include <QGraphicsSceneMouseEvent>
 
-class BaseGraphicsItem: public QGraphicsRectItem
+class BaseGraphicsItem: public QGraphicsItem
 {
 public:
-    BaseGraphicsItem(QGraphicsItem *parent = nullptr)
-        :QGraphicsRectItem(parent){}
-    virtual ~BaseGraphicsItem() {}
-    virtual void resize(int weight, int hight) = 0;
-};
+    BaseGraphicsItem(QGraphicsScene* scene, QGraphicsItem *parent = nullptr);
 
+    virtual ~BaseGraphicsItem() {}
+    virtual void resize(qreal x2, qreal y2) = 0;
+};
 
 class ControlPoint: public QObject,  public BaseGraphicsItem
 {
     Q_OBJECT
 public:
-    ControlPoint(QGraphicsItem *parent = nullptr);
-    ~ControlPoint(){}
-    void resize(int weight, int hight) override {
-        Q_UNUSED(weight);Q_UNUSED(hight);
+    ControlPoint(QGraphicsScene* scene, QGraphicsItem *parent = nullptr);
+    ~ControlPoint() override {}
+    void resize(qreal x2, qreal y2) override {
+        Q_UNUSED(x2);Q_UNUSED(y2);
     }
 protected:
     QRectF boundingRect() const override;
     void mouseMoveEvent( QGraphicsSceneMouseEvent* event) override;
 
 private:
+    const int SZ = 30;
 };
 
 class Line: public QObject, public BaseGraphicsItem
 {
     Q_OBJECT
 public:
-    Line(qreal x1, qreal y1, qreal x2, qreal y2, QGraphicsItem *parent = nullptr);
-    ~Line(){}
+    Line(qreal x1, qreal y1, qreal x2, qreal y2, QGraphicsScene* scene, QGraphicsItem *parent = nullptr);
+    ~Line() override {}
     void setPen(QPen pen);
-    void resize(int weight, int hight) override {
-        Q_UNUSED(weight);Q_UNUSED(hight);
+    void resize(qreal x2, qreal y2) override {
+        Q_UNUSED(x2);Q_UNUSED(y2);
     }
 private:
     qreal x1,y1,x2,y2;
     QGraphicsLineItem* itemLine;
     ControlPoint* p_begin;
     ControlPoint* p_end;
+protected:
+    QRectF boundingRect() const override;
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) override;
+    void mouseMoveEvent( QGraphicsSceneMouseEvent* event) override;
 
 };
 
@@ -53,20 +57,25 @@ class Rect: public QObject, public BaseGraphicsItem
 {
     Q_OBJECT
 public:
-    Rect(qreal x1, qreal y1, qreal x2, qreal y2, QGraphicsItem *parent = nullptr);
+    Rect(qreal x1, qreal y1, qreal x2, qreal y2, QGraphicsScene* scene, QGraphicsItem *parent = nullptr);
     ~Rect(){}
     void setPen(QPen aPen);
-    void resize(int weight, int hight) override;
+    //void resize(int weight, int hight) override;
+    void resize(qreal x2, qreal y2) override;
 private:
     qreal x1,y1,x2,y2;
     bool hoverEntered;
 
-    int w;
-    int h;
+    const int SZ = 100;
+    qreal w;
+    qreal h;
 
 
     QGraphicsRectItem* rect;
     QPen pen;
+
+    ControlPoint* ctrlPoint;
+
 protected:
     QRectF boundingRect() const override;
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = nullptr) override;
@@ -123,7 +132,7 @@ private:
     bool isKeyPressed;
 
 public:
-    QGraphicsItem *getNewItem(qreal ax1, qreal ay1, qreal ax2, qreal ay2);
+    BaseGraphicsItem *getNewItem(qreal ax1, qreal ay1, qreal ax2, qreal ay2);
 
 public:
     void setTypeGraphElement(TypeGraphElement type) {typeGraphElement = type;}
