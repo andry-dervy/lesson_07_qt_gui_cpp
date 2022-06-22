@@ -76,7 +76,7 @@ void DrawGraphToolBarSingleton::setDrawingElement(QString&& objName, GraphDocume
 
 void DrawGraphToolBarSingleton::setDrawingLine()
 {
-    setDrawingElement("actDrawLine",GraphDocumentView::TypeGraphElement::Line);
+    //setDrawingElement("actDrawLine",GraphDocumentView::TypeGraphElement::Line);
 }
 
 void DrawGraphToolBarSingleton::setDrawingRectangle()
