@@ -20,7 +20,7 @@ public:
     void setAdded() {added = true;}
     void retranslate();
     void setActionsChecked(Qt::Alignment alignment);
-    bool setToolBarTextFormatAlignment(Qt::Alignment alignment);
+    void setTextFormatAlignment(Qt::Alignment alignment);
     std::optional<std::pair<TextDocumentView*,QTextCursor>> getCursorCurrentSubWindow() const;
     void addTextDocumentView(DocumentView *docView);
 private:

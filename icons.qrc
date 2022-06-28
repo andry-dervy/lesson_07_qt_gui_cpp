@@ -35,5 +35,9 @@
         <file>widgetsettings.h</file>
         <file>widgettreedirs.cpp</file>
         <file>widgettreedirs.h</file>
+        <file>icons/graphics/elipse.png</file>
+        <file>icons/graphics/star.png</file>
+        <file>icons/graphics/colorgraphitem.png</file>
+        <file>icons/graphics/colorgraphitemborder.png</file>
     </qresource>
 </RCC>

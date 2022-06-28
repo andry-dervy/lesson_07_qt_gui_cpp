@@ -11,7 +11,7 @@ WidgetTreeDirs::WidgetTreeDirs(QWidget *parent) : QWidget(parent)
     model = new FileSystemModel(this);
     model->setRootPath(QDir::currentPath());
     QStringList sList;
-    sList << "*.txt";
+    sList << "*.htxt";
     model->setNameFilters(sList);
     model->setNameFilterDisables(false);
     model->retranslate();

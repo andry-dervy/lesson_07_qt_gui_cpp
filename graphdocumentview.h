@@ -14,15 +14,17 @@ public:
 private:
     QPointF lastpos;
     QGraphicsItem* currentItem;
+    bool m_rotate;
 
-    bool m_isKeyPressed;
-
-    const int SIZE = 50;
+    const double zoom_in = 1.1;
+    const double zoom_out = 0.9;
 
 protected:
     void mouseMoveEvent(QMouseEvent* event) override;
     void mousePressEvent(QMouseEvent* event) override;
     void mouseReleaseEvent(QMouseEvent* event) override;
+    void keyPressEvent(QKeyEvent *event) override;
+    void wheelEvent(QWheelEvent *event) override;
 };
 
 class GraphDocumentView: public DocumentView
@@ -32,10 +34,14 @@ class GraphDocumentView: public DocumentView
 public:
     enum class TypeGraphElement
     {
-        Empty,Elipse,Rectangle,Star,
+        Empty,Ellipse,Rectangle,Star,
     };
-
-    Q_ENUMS(TypeGraphElement)
+    Q_ENUM(TypeGraphElement)
+    enum TypeData
+    {
+        Angle,
+    };
+    Q_ENUM(TypeData)
 
 public:
     GraphDocumentView(QWidget* parent);
@@ -50,17 +56,23 @@ public:
 private:
     TypeGraphElement typeGraphElement;
     bool isKeyPressed;
+    const int SIZE = 250;
+    const int SIZE_SCENE = 100;
 
 public:
-    QGraphicsItem *getNewItem(qreal ax1, qreal ay1, qreal ax2, qreal ay2);
+    QGraphicsItem* getNewItem();
 
 public:
     void setTypeGraphElement(TypeGraphElement type) {typeGraphElement = type;}
+    void setPenWidth(int aWidth) {currentPen.setWidth(aWidth);}
+    void setPenColor(QColor aColor) {currentPen.setColor(aColor);}
+    void setColorBrush(QColor aColor) {colorBrush = aColor;}
 
 private:
     QGraphicsScene *scene;
     GraphicsView *graphView;
     QPen currentPen;
+    QColor colorBrush;
 
 protected:
     bool eventFilter(QObject *obj, QEvent *event) override;

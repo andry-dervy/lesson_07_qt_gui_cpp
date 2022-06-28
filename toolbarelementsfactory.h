@@ -18,7 +18,9 @@ public:
     static std::optional<T *> create(
             const QString&& nameObject, QWidget *parent = nullptr, bool checkable = false, const QPixmap&& icon = QPixmap());
 
-    static void setText(QObject* obj,const QString&& nameObject, const QString &&text);
+    static void setText(QObject* parent,const QString&& nameObject, const QString &&text);
+    static void setChecked(QObject* parent,const QString&& nameObject, const bool b);
+    static bool isChecked(QObject* parent,const QString&& nameObject);
 };
 
 

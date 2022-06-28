@@ -19,7 +19,8 @@ public:
     void setAdded() {added = true;}
     void retranslate();
 
-    void clearActionsChecked(QAction* currentAct);
+    std::optional<GraphDocumentView*> getCurrentGraphDocView() const;
+
 private:
     bool added;
     Qt::Alignment alignment_;
@@ -31,11 +32,15 @@ private:
     DrawGraphToolBarSingleton(DrawGraphToolBarSingleton&& root) = delete;
     DrawGraphToolBarSingleton& operator=(DrawGraphToolBarSingleton&&) = delete;
 
+    void setActionsChecked(GraphDocumentView::TypeGraphElement typeGraphElement);
     void setDrawingElement(QString&& objName, GraphDocumentView::TypeGraphElement typeGraphElement);
 
 public slots:
-    void setDrawingLine();
+    void setDrawingElipse();
     void setDrawingRectangle();
+    void setDrawingStar();
+    void setColor();
+    void setColorBorder();
     void setWidthPen(int index);
 
     void activatedDocumentView(DocumentView* docView);

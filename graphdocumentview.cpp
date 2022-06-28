@@ -9,10 +9,10 @@
 #include <QDebug>
 #include <QColor>
 
-
 GraphicsView::GraphicsView(QWidget *parent)
-    :QGraphicsView (parent)
-    ,currentItem(nullptr)
+    : QGraphicsView (parent)
+    , currentItem(nullptr)
+    , m_rotate(false)
 {}
 
 void GraphicsView::mouseMoveEvent(QMouseEvent *event)
@@ -42,38 +42,12 @@ void GraphicsView::mousePressEvent(QMouseEvent *event)
     {
         case Qt::LeftButton:
         {
-            QPointF pos = mapToScene(event->pos());
-
-            qDebug() << "QEvent::MouseButtonPress - " << "Qt::LeftButton: " << pos;
-            qDebug() << "event->pos() " << event->pos();
-            QPointF posGl = mapToGlobal(event->pos());
-            qDebug() << "posGl " << posGl;
-            switch(docView->getTypeGraphElement())
+            auto newitem = docView->getNewItem();
+            if(newitem)
             {
-                case GraphDocumentView::TypeGraphElement::Empty:
-                {
-                    break;
-                }
-                case GraphDocumentView::TypeGraphElement::Rectangle:
-                {
-                    auto newitem = docView->getNewItem(pos.x(), pos.y(), pos.x() + SIZE, pos.y() + SIZE);
-                    newitem->setPos(pos);
-                    if(newitem)
-                    {
-                        //scene()->addItem(newitem);
-                        currentItem = newitem;
-                        lastpos = pos;
-                    }
-                    break;
-                }
-                case GraphDocumentView::TypeGraphElement::Star:
-                {
-                    break;
-                }
-                case GraphDocumentView::TypeGraphElement::Elipse:
-                {
-                    break;
-                }
+                QPointF pos = mapToScene(event->pos());
+                newitem->setPos(pos);
+                scene()->addItem(newitem);
             }
             break;
         }
@@ -81,6 +55,11 @@ void GraphicsView::mousePressEvent(QMouseEvent *event)
         {
             auto item = itemAt(event->pos());
             if(item) scene()->removeItem(item);
+            break;
+        }
+        case Qt::MidButton:
+        {
+            m_rotate = true;
             break;
         }
         default:
@@ -95,17 +74,65 @@ void GraphicsView::mouseReleaseEvent(QMouseEvent *event)
     Q_ASSERT(docView != nullptr);
 
     switch (event->button()) {
-    case Qt::LeftButton:
+    case Qt::MidButton:
     {
-        currentItem = nullptr;
-        QPointF pos = mapToScene(event->pos());
-        qDebug() << "QEvent::MouseButtonRelease - " << "Qt::LeftButton: " << pos;
+        m_rotate = false;
+        break;
     }
-    break;
     default:
     break;
     }
     QGraphicsView::mouseReleaseEvent(event);
+}
+
+void GraphicsView::keyPressEvent(QKeyEvent* event)
+{
+    if(event->modifiers() == Qt::KeyboardModifier::ControlModifier)
+    {
+        if(event->key() == Qt::Key_Equal)
+        {
+            scale(zoom_in,zoom_in);
+            qDebug() << "Zoom" << zoom_in;
+        }
+        else if(event->key() == Qt::Key_Minus)
+        {
+            scale(zoom_out,zoom_out);
+            qDebug() << "Zoom" << zoom_out;
+        }
+    }
+
+    QGraphicsView::keyPressEvent(event);
+}
+
+void GraphicsView::wheelEvent(QWheelEvent *event)
+{
+    if(m_rotate)
+    {
+        auto pos = mapToScene(event->pos());
+        QTransform transform;
+        auto item = scene()->itemAt(pos,transform);
+        if(item)
+        {
+            QPoint numDegrees = event->angleDelta();
+            auto center = item->boundingRect().center();
+
+            auto angle = item->data(GraphDocumentView::TypeData::Angle).toReal();
+
+            if(numDegrees.y() > 0)
+            {
+                angle += 10;
+            }
+            else
+            {
+                angle -= 10;
+            }
+            transform.translate(center.x(), center.y()).rotate(angle).translate(-center.x(), -center.y());
+            item->setTransform(transform);
+
+            item->setData(GraphDocumentView::TypeData::Angle,angle);
+        }
+    }
+    QGraphicsView::wheelEvent(event);
 }
 
 GraphDocumentView::GraphDocumentView(QWidget* parent)
@@ -118,14 +145,13 @@ GraphDocumentView::GraphDocumentView(QWidget* parent)
 
     graphView = new GraphicsView(this);
     layout->addWidget(graphView,0,0,1,1);
-//    auto graphViewEF = new GraphicsViewEventFilter(this);
-//    graphView->installEventFilter(graphViewEF);
 
     scene = new QGraphicsScene(this);
-    scene->setSceneRect(QRect(0,0,100,100));
+    scene->setSceneRect(QRect(0,0,SIZE_SCENE,SIZE_SCENE));
     graphView->setScene(scene);
     graphView->fitInView(scene->sceneRect(),Qt::KeepAspectRatio);
-    //scene->installEventFilter(this);
+
+    graphView->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 
     graphView->show();
 
@@ -133,6 +159,7 @@ GraphDocumentView::GraphDocumentView(QWidget* parent)
     setWindowTitle(tr("Без названия"));
 
     currentPen.setColor(Qt::red);
+    colorBrush = Qt::red;
     currentPen.setWidth(2);
 }
 
@@ -159,7 +186,7 @@ void GraphDocumentView::print(QPrinter* printer) const
     Q_UNUSED(printer);
 }
 
-QGraphicsItem* GraphDocumentView::getNewItem(qreal ax1, qreal ay1, qreal ax2, qreal ay2)
+QGraphicsItem* GraphDocumentView::getNewItem()
 {
     switch(typeGraphElement)
     {
@@ -169,9 +196,48 @@ QGraphicsItem* GraphDocumentView::getNewItem(qreal ax1, qreal ay1, qreal ax2, qr
     case TypeGraphElement::Rectangle:
     {
         qDebug() << "getNewItem: Rectangle";
-//        auto item = new Rect(ax1,ay1,ax2,ay2,scene);
-//        item->setPen(currentPen);
-//        return item;
+        auto item = new QGraphicsRectItem(0,0,SIZE,SIZE);
+        item->setPen(currentPen);
+        item->setBrush(colorBrush);
+        item->setFlags(QGraphicsItem::ItemIsMovable);
+        int angle = 0;
+        item->setData(TypeData::Angle,angle);
+        return item;
+    }
+    case TypeGraphElement::Ellipse:
+    {
+        qDebug() << "getNewItem: Ellipse";
+        auto item = new QGraphicsEllipseItem(0,0,SIZE,SIZE);
+        item->setPen(currentPen);
+        item->setBrush(colorBrush);
+        item->setFlags(QGraphicsItem::ItemIsMovable);
+        int angle = 0;
+        item->setData(TypeData::Angle,angle);
+        return item;
+    }
+    case TypeGraphElement::Star:
+    {
+        qDebug() << "getNewItem: Star";
+
+        QPolygonF polygon;
+        polygon << QPointF(0.5*SIZE, 0)
+                << QPointF(0.6*SIZE, 0.4*SIZE)
+                << QPointF(SIZE, 0.4*SIZE)
+                << QPointF(0.7*SIZE, 0.6*SIZE)
+                << QPointF(0.9*SIZE, 1.0*SIZE)
+                << QPointF(0.5*SIZE, 0.7*SIZE)
+                << QPointF(0.1*SIZE, 1.0*SIZE)
+                << QPointF(0.3*SIZE, 0.6*SIZE)
+                << QPointF(0.0*SIZE, 0.4*SIZE)
+                << QPointF(0.4*SIZE, 0.4*SIZE);
+
+        auto item = new QGraphicsPolygonItem(polygon);
+        item->setPen(currentPen);
+        item->setBrush(colorBrush);
+        item->setFlags(QGraphicsItem::ItemIsMovable);
+        int angle = 0;
+        item->setData(TypeData::Angle,angle);
+        return item;
     }
     }
     return nullptr;

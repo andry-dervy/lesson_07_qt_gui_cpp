@@ -55,33 +55,66 @@ std::optional<QComboBox *> ToolbarElementsFactory<QComboBox>::create(const QStri
 }
 
 template<class T>
-void ToolbarElementsFactory<T>::setText(QObject *obj, const QString &&nameObject,const QString &&text)
+void ToolbarElementsFactory<T>::setText(QObject *parent, const QString &&nameObject,const QString &&text)
 {
-    Q_UNUSED(obj);
+    Q_UNUSED(parent);
     Q_UNUSED(nameObject);
     Q_UNUSED(text);
 }
 
 template<>
-void ToolbarElementsFactory<QAction>::setText(QObject* obj,const QString&& nameObject,const QString&& text)
+void ToolbarElementsFactory<QAction>::setText(QObject* parent,const QString&& nameObject,const QString&& text)
 {
-    Q_ASSERT(obj != nullptr);
-    auto act = obj->findChild<QAction*>(nameObject);
+    Q_ASSERT(parent != nullptr);
+    auto act = parent->findChild<QAction*>(nameObject);
     if(act != nullptr) act->setText(text);
 }
 
 template<>
-void ToolbarElementsFactory<QMenu>::setText(QObject* obj,const QString&& nameObject,const QString&& text)
+void ToolbarElementsFactory<QMenu>::setText(QObject* parent,const QString&& nameObject,const QString&& text)
 {
-    Q_ASSERT(obj != nullptr);
-    auto menu = obj->findChild<QMenu*>(nameObject);
+    Q_ASSERT(parent != nullptr);
+    auto menu = parent->findChild<QMenu*>(nameObject);
     if(menu != nullptr) menu->setTitle(text);
 }
 
 template<>
-void ToolbarElementsFactory<QComboBox>::setText(QObject* obj,const QString&& nameObject,const QString&& text)
+void ToolbarElementsFactory<QComboBox>::setText(QObject* parent,const QString&& nameObject,const QString&& text)
 {
-    Q_ASSERT(obj != nullptr);
-    auto combo = obj->findChild<QComboBox*>(nameObject);
+    Q_ASSERT(parent != nullptr);
+    auto combo = parent->findChild<QComboBox*>(nameObject);
     if(combo != nullptr) combo->setToolTip(text);
+}
+
+template<class T>
+void ToolbarElementsFactory<T>::setChecked(QObject* parent,const QString&& nameObject, const bool b)
+{
+    Q_UNUSED(parent);
+    Q_UNUSED(nameObject);
+    Q_UNUSED(b);
+}
+
+template<>
+void ToolbarElementsFactory<QAction>::setChecked(QObject* parent,const QString&& nameObject, const bool b)
+{
+    Q_ASSERT(parent != nullptr);
+    auto act = parent->findChild<QAction*>(nameObject);
+    if(act != nullptr) act->setChecked(b);
+}
+
+template<class T>
+bool ToolbarElementsFactory<T>::isChecked(QObject* parent,const QString&& nameObject)
+{
+    Q_UNUSED(parent);
+    Q_UNUSED(nameObject);
+    return false;
+}
+
+template<>
+bool ToolbarElementsFactory<QAction>::isChecked(QObject* parent,const QString&& nameObject)
+{
+    Q_ASSERT(parent != nullptr);
+    auto act = parent->findChild<QAction*>(nameObject);
+    if(act != nullptr) return act->isChecked();
+    return false;
 }

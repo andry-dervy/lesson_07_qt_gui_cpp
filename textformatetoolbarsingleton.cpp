@@ -54,25 +54,25 @@ TextFormateToolBarSingleton::TextFormateToolBarSingleton(MainWindow* parent)
     addAction(*act);
 
     act = ToolbarElementsFactory<QAction>::create(
-                "actTextFont", this,true,QPixmap(":/icons/textformate/font.png"));
+                "actTextFont", this,false,QPixmap(":/icons/textformate/font.png"));
     Q_ASSERT(act != nullptr);
     connect(*act,SIGNAL(triggered()),this,SLOT(textFont()));
     addAction(*act);
 
     act = ToolbarElementsFactory<QAction>::create(
-                "actColorFont", this,true,QPixmap(":/icons/textformate/colorfont.png"));
+                "actColorFont", this,false,QPixmap(":/icons/textformate/colorfont.png"));
     Q_ASSERT(act != nullptr);
     connect(*act,SIGNAL(triggered()),this,SLOT(textColorFont()));
     addAction(*act);
 
     act = ToolbarElementsFactory<QAction>::create(
-                "actColorBackground", this,true,QPixmap(":/icons/textformate/colorbackground.png"));
+                "actColorBackground", this,false,QPixmap(":/icons/textformate/colorbackground.png"));
     Q_ASSERT(act != nullptr);
     connect(*act,SIGNAL(triggered()),this,SLOT(textColorBackground()));
     addAction(*act);
 
     act = ToolbarElementsFactory<QAction>::create(
-                "actClearFormat", this,true,QPixmap(":/icons/textformate/clear.png"));
+                "actClearFormat", this,false,QPixmap(":/icons/textformate/clear.png"));
     Q_ASSERT(act != nullptr);
     connect(*act,SIGNAL(triggered()),this,SLOT(textClearFormat()));
     addAction(*act);
@@ -88,75 +88,66 @@ TextFormateToolBarSingleton::TextFormateToolBarSingleton(MainWindow* parent)
 
 void TextFormateToolBarSingleton::setActionsChecked(Qt::Alignment alignment)
 {
-    auto actTextFormateLeft = findChild<QAction*>("actTextFormateLeft");
-    if(actTextFormateLeft) actTextFormateLeft->setChecked(false);
-    auto actTextFormateCenter = findChild<QAction*>("actTextFormateCenter");
-    if(actTextFormateCenter) actTextFormateCenter->setChecked(false);
-    auto actTextFormateRight = findChild<QAction*>("actTextFormateRight");
-    if(actTextFormateRight) actTextFormateRight->setChecked(false);
-    auto actTextFormateWidth = findChild<QAction*>("actTextFormateWidth");
-    if(actTextFormateWidth) actTextFormateWidth->setChecked(false);
+    ToolbarElementsFactory<QAction>::setChecked(this,"actTextFormateLeft",false);
+    ToolbarElementsFactory<QAction>::setChecked(this,"actTextFormateCenter",false);
+    ToolbarElementsFactory<QAction>::setChecked(this,"actTextFormateRight",false);
+    ToolbarElementsFactory<QAction>::setChecked(this,"actTextFormateWidth",false);
 
     qDebug() << "setActionsChecked(" << alignment <<")";
 
     switch (alignment) {
     case Qt::AlignLeft:
-        if(actTextFormateLeft) actTextFormateLeft->setChecked(true);
+        ToolbarElementsFactory<QAction>::setChecked(this,"actTextFormateLeft",true);
         break;
     case Qt::AlignHCenter:
     case Qt::AlignVCenter:
     case Qt::AlignCenter:
-        if(actTextFormateCenter) actTextFormateCenter->setChecked(true);
+        ToolbarElementsFactory<QAction>::setChecked(this,"actTextFormateCenter",true);
         break;
     case Qt::AlignRight:
     case Qt::AlignTrailing|Qt::AlignAbsolute:
-        if(actTextFormateRight) actTextFormateRight->setChecked(true);
+        ToolbarElementsFactory<QAction>::setChecked(this,"actTextFormateRight",true);
         break;
     case Qt::AlignJustify:
-        if(actTextFormateWidth) actTextFormateWidth->setChecked(true);
+        ToolbarElementsFactory<QAction>::setChecked(this,"actTextFormateWidth",true);
         break;
     }
 }
 
-bool TextFormateToolBarSingleton::setToolBarTextFormatAlignment(Qt::Alignment alignment)
+void TextFormateToolBarSingleton::setTextFormatAlignment(Qt::Alignment alignment)
 {
     auto wnd = qobject_cast<MainWindow*>(parent());
-    if(!wnd) return false;
+    if(!wnd) return;
 
     auto optDocView = wnd->currentSubWindow();
-    if(!optDocView) return false;
+    if(!optDocView) return;
     auto textDocView = qobject_cast<TextDocumentView*>(*optDocView);
-    if(!textDocView) return false;
+    if(!textDocView) return;
 
     textDocView->te().setAlignment(alignment);
 
     alignment_ = alignment;
     setActionsChecked(alignment);
-    return true;
 }
 
 void TextFormateToolBarSingleton::textFormateLeft()
 {
-    auto act = findChild<QAction*>("actTextFormateLeft");
-    if(act != nullptr) act->setChecked(setToolBarTextFormatAlignment(Qt::AlignLeft));
+    setTextFormatAlignment(Qt::AlignLeft);
 }
 
 void TextFormateToolBarSingleton::textFormateCenter()
 {
-    auto act = findChild<QAction*>("actTextFormateCenter");
-    if(act != nullptr) act->setChecked(setToolBarTextFormatAlignment(Qt::AlignCenter));
+    setTextFormatAlignment(Qt::AlignCenter);
 }
 
 void TextFormateToolBarSingleton::textFormateRight()
 {
-    auto act = findChild<QAction*>("actTextFormateRight");
-    if(act != nullptr) act->setChecked(setToolBarTextFormatAlignment(Qt::AlignRight));
+    setTextFormatAlignment(Qt::AlignRight);
 }
 
 void TextFormateToolBarSingleton::textFormateWidth()
 {
-    auto act = findChild<QAction*>("actTextFormateWidth");
-    if(act != nullptr) act->setChecked(setToolBarTextFormatAlignment(Qt::AlignJustify));
+    setTextFormatAlignment(Qt::AlignJustify);
 }
 
 void TextFormateToolBarSingleton::textFont()
@@ -230,7 +221,7 @@ void TextFormateToolBarSingleton::textCopyFormat()
         checked = false;
 
         pr->first->te().textCursor().setCharFormat(std::get<0>(tpl));
-        setToolBarTextFormatAlignment(std::get<1>(tpl));
+        setTextFormatAlignment(std::get<1>(tpl));
     }
     else
     {
